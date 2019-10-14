@@ -17,7 +17,8 @@ void execute_pipe(const char* infile, const char* outfile) {
 	printf("Output file: %s\n", outfile);
 
 	const unsigned int numCmds = sizeof(COMMANDS) / sizeof(COMMANDS[0]);
-	int allPIDs[numCmds];
+	int pids[numCmds];
+	int exitStatus[numCmds];
 
 	// create pipes first
 	const unsigned int numPipes = numCmds - 1;
@@ -90,7 +91,7 @@ void execute_pipe(const char* infile, const char* outfile) {
 
 		// parent process
 		else {
-			allPIDs[i] = pid;
+			pids[i] = pid;
 
 			if (i == numCmds - 1) {
 				for (unsigned int j = 0; j < numPipes; ++j) {
@@ -99,20 +100,19 @@ void execute_pipe(const char* infile, const char* outfile) {
 				}
 
 				// testing for waitpid
-				int status;
 				printf("Completed: %s", CMDLINE);
-
-				sleep(1);
-
 				for (unsigned j = 0; j < numCmds; ++j) {
-					int ret1 = waitpid(allPIDs[j], &status, WNOHANG);
-					int ret2 = waitpid(allPIDs[j], &status, WNOHANG);
-					/* When waiting for particular child processes with WNOHANG specified at the end, ret will be:
-						1. if that child PID is not terminated, return 0
-						2. if that child PID has changed state, return that PID
-						3. if there is an error, return -1;
+					int ret = waitpid(pids[j], &(exitStatus[j]), 0);
+					/* waitpid() return values
+						* When waiting for particular child processes with WNOHANG specified as option (at the end), ret will be:
+							1. if that child PID is not terminated, return 0
+							2. if that child PID has changed state, return child PID
+							3. if there is an error, return -1
+						* When waiting for particular child process with 0 specified as option, ret will be:
+							1. if that child PID is terminated, return child PID
+							2. if there is an error, return -1
 					*/
-					printf("\nPID [%d]: exit status = %d; ret1 = %d; ret2 = %d", allPIDs[j], WEXITSTATUS(status), ret1, ret2);
+					printf("\nPID [%d]: exit status = %d; ret = %d", pids[j], WEXITSTATUS(exitStatus[j]), ret);
 				}
 				printf("\n");
 			}
