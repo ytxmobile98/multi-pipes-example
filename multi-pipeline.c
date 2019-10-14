@@ -101,7 +101,9 @@ void execute_pipe(const char* infile, const char* outfile) {
 				// testing for waitpid
 				int status;
 				printf("Completed: %s", CMDLINE);
+
 				sleep(1);
+
 				for (unsigned j = 0; j < numCmds; ++j) {
 					int ret1 = waitpid(allPIDs[j], &status, WNOHANG);
 					int ret2 = waitpid(allPIDs[j], &status, WNOHANG);
@@ -110,7 +112,7 @@ void execute_pipe(const char* infile, const char* outfile) {
 						2. if that child PID has changed state, return that PID
 						3. if there is an error, return -1;
 					*/
-					printf("\nPID [%d]: ret1 = %d; ret2 = %d", allPIDs[j], ret1, ret2);
+					printf("\nPID [%d]: exit status = %d; ret1 = %d; ret2 = %d", allPIDs[j], WEXITSTATUS(status), ret1, ret2);
 				}
 				printf("\n");
 			}
