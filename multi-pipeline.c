@@ -17,8 +17,9 @@ void execute_pipe(const char* infile, const char* outfile) {
 	printf("Output file: %s\n", outfile);
 
 	const unsigned int numCmds = sizeof(COMMANDS) / sizeof(COMMANDS[0]);
-	const unsigned int numPipes = numCmds - 1;
+	int allPIDs[numCmds];
 
+	const unsigned int numPipes = numCmds - 1;
 	int pipes[numPipes][2];
 	unsigned int i = 0;
 	for (i = 0; i < numPipes; ++i) {
@@ -89,12 +90,20 @@ void execute_pipe(const char* infile, const char* outfile) {
 
 		// parent process
 		else {
+			allPIDs[i] = pid;
+
 			if (i == numCmds - 1) {
 				for (unsigned int j = 0; j < numPipes; ++j) {
 					close(pipes[j][0]);
 					close(pipes[j][1]);
 				}
 				waitpid(-1, NULL, 0);
+
+				printf("Completed: %s\nall PIDs: ", CMDLINE);
+				for (unsigned j = 0; j < numCmds; ++j) {
+					printf("[%d] %d; ", j, allPIDs[j]);
+				}
+				printf("\n");
 			}
 		}
 	}
