@@ -40,8 +40,6 @@ void execute_pipe(const char* infile, const char* outfile) {
 		// child process
 		else if (pid == 0) {
 
-			int infileDesc, outfileDesc;
-
 			// redirect input
 			if (i > 0) {
 				// for all commands after the first command, connect input to pipeline
@@ -50,7 +48,7 @@ void execute_pipe(const char* infile, const char* outfile) {
 			else {
 				// for the first command, redirect to input file
 				if (infile) {
-					infileDesc = open(infile, O_RDONLY);
+					int infileDesc = open(infile, O_RDONLY);
 					if (infileDesc < 0) {
 						perror("open for reading only");
 						_exit(-1);
@@ -68,7 +66,7 @@ void execute_pipe(const char* infile, const char* outfile) {
 			else {
 				// for the last command, redirect to output file
 				if (outfile) {
-					outfileDesc = open(outfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+					int outfileDesc = open(outfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
 					if (outfileDesc < 0) {
 						perror("open for writing only");
 						_exit(-1);
