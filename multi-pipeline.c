@@ -98,12 +98,19 @@ void execute_pipe(const char* infile, const char* outfile) {
 					close(pipes[j][1]);
 				}
 
+				// testing for waitpid
 				int status;
 				printf("Completed: %s", CMDLINE);
-
+				sleep(1);
 				for (unsigned j = 0; j < numCmds; ++j) {
-					int ret = waitpid(allPIDs[j], &status, 0);
-					printf("\nPID [%d]: ret = %d; ", allPIDs[j], ret);
+					int ret1 = waitpid(allPIDs[j], &status, WNOHANG);
+					int ret2 = waitpid(allPIDs[j], &status, WNOHANG);
+					/* When waiting for particular child processes with WNOHANG specified at the end, ret will be:
+						1. if that child PID is not terminated, return 0
+						2. if that child PID has changed state, return that PID
+						3. if there is an error, return -1;
+					*/
+					printf("\nPID [%d]: ret1 = %d; ret2 = %d", allPIDs[j], ret1, ret2);
 				}
 				printf("\n");
 			}
