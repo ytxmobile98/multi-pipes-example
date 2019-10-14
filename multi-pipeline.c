@@ -3,34 +3,30 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-const char infile[] = "infile.txt";
-const char outfile[] = "outfile.txt";
-
-const char cmdLine[] = "cat < infile.txt | grep hello | grep he > outfile.txt";
-const char* commands[][10] = {
+#define CMDLINE "cat < infile.txt | grep hello | grep he > outfile.txt"
+const char* COMMANDS[][10] = {
 	{ "cat", NULL },
 	{ "grep", "hello", NULL },
 	{ "grep", "he", NULL },
 };
 
+void execute_pipe(const char* infile, const char* outfile) {
 
-int main() {
-	printf("Executing: %s\n", cmdLine);
+	printf("Executing: %s\n", CMDLINE);
 	printf("Input file: %s\n", infile);
 	printf("Output file: %s\n", outfile);
 
-	pid_t pid;
-
-	const unsigned int numCmds = sizeof(commands) / sizeof(commands[0]);
+	const unsigned int numCmds = sizeof(COMMANDS) / sizeof(COMMANDS[0]);
 	const unsigned int numPipes = numCmds - 1;
-	unsigned int i = 0;
+
 	int pipes[numPipes][2];
+	unsigned int i = 0;
 	for (i = 0; i < numPipes; ++i) {
 		pipe(pipes[i]);
 	}
 
 	for (i = 0; i < numCmds; ++i) {
-		pid = fork();
+		pid_t pid = fork();
 
 		// if there is error in forking
 		if (pid < 0) {
@@ -49,14 +45,16 @@ int main() {
 				dup2(pipes[i-1][0], STDIN_FILENO);
 			}
 			else {
-				// for the first command, redirect to input file ("infile.txt")
-				infileDesc = open(infile, O_RDONLY);
-				if (infileDesc < 0) {
-					perror("open for reading only");
-					_exit(-1);
+				// for the first command, redirect to input file
+				if (infile) {
+					infileDesc = open(infile, O_RDONLY);
+					if (infileDesc < 0) {
+						perror("open for reading only");
+						_exit(-1);
+					}
+					dup2(infileDesc, STDIN_FILENO);
+					close(infileDesc);
 				}
-				dup2(infileDesc, STDIN_FILENO);
-				close(infileDesc);
 			}
 
 			// redirect output
@@ -65,13 +63,16 @@ int main() {
 				dup2(pipes[i][1], STDOUT_FILENO);
 			}
 			else {
-				outfileDesc = open(outfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
-				if (outfileDesc < 0) {
-					perror("open for writing only");
-					_exit(-1);
+				// for the last command, redirect to output file
+				if (outfile) {
+					outfileDesc = open(outfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+					if (outfileDesc < 0) {
+						perror("open for writing only");
+						_exit(-1);
+					}
+					dup2(outfileDesc, STDOUT_FILENO);
+					close(outfileDesc);
 				}
-				dup2(outfileDesc, STDOUT_FILENO);
-				close(outfileDesc);
 			}
 
 			// close file descriptors
@@ -81,7 +82,7 @@ int main() {
 			}
 
 			// execute command
-			execvp(commands[i][0], (char**)commands[i]);
+			execvp(COMMANDS[i][0], (char**)COMMANDS[i]);
 			perror("execvp");
 			_exit(-1);
 		}
@@ -98,5 +99,13 @@ int main() {
 		}
 	}
 
+	return;
+}
+
+
+int main() {
+	const char infile[] = "infile.txt";
+	const char outfile[] = "outfile.txt";
+	execute_pipe(infile, outfile);
 	return 0;
 }
