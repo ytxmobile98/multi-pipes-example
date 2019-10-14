@@ -97,11 +97,13 @@ void execute_pipe(const char* infile, const char* outfile) {
 					close(pipes[j][0]);
 					close(pipes[j][1]);
 				}
-				waitpid(-1, NULL, 0);
 
-				printf("Completed: %s\nall PIDs: ", CMDLINE);
+				int status;
+				printf("Completed: %s", CMDLINE);
+
 				for (unsigned j = 0; j < numCmds; ++j) {
-					printf("[%d] %d; ", j, allPIDs[j]);
+					int ret = waitpid(allPIDs[j], &status, 0);
+					printf("\nPID [%d]: ret = %d; ", allPIDs[j], ret);
 				}
 				printf("\n");
 			}
