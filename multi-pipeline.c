@@ -93,6 +93,7 @@ int main() {
 					close(pipes[j][0]);
 					close(pipes[j][1]);
 				}
+				waitpid(-1, NULL, 0);
 			}
 		}
 	}
