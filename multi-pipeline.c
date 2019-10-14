@@ -19,6 +19,7 @@ void execute_pipe(const char* infile, const char* outfile) {
 	const unsigned int numCmds = sizeof(COMMANDS) / sizeof(COMMANDS[0]);
 	int allPIDs[numCmds];
 
+	// create pipes first
 	const unsigned int numPipes = numCmds - 1;
 	int pipes[numPipes][2];
 	unsigned int i = 0;
@@ -26,6 +27,7 @@ void execute_pipe(const char* infile, const char* outfile) {
 		pipe(pipes[i]);
 	}
 
+	// execute the pipeline in order
 	for (i = 0; i < numCmds; ++i) {
 		pid_t pid = fork();
 
